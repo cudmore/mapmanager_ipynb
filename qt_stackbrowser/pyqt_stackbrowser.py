@@ -36,7 +36,14 @@ class MyWindow(QMainWindow):
 		#this is required here AND in self.centralWidget()
 		self.setMouseTracking(True)
 
-		self.image = QImage('./pigeon.jpg')
+		#see: http://stackoverflow.com/questions/10477075/pyqt4-jpeg-jpg-unsupported-image-format
+		#print 'cwd: ',os.getcwd()
+		localImagePath = os.getcwd() + '/pigeon.png'
+		if not os.path.isfile(localImagePath):
+			print '*** ERROR: did not find file:', localImagePath
+		self.image = QImage(localImagePath)
+		if self.image.isNull():
+			print '*** ERROR: loading image'
 		self.dirty = False
 		self.filename = 'pigeon xxx'
 		self.mirroredvertically = False
@@ -44,7 +51,7 @@ class MyWindow(QMainWindow):
 
 		self.move(100,100)
 		
-		self.imageLabel = QLabel() #for some reason, QLabel is used to diaply images (in general)
+		self.imageLabel = QLabel() #for some reason, QLabel is used to display images (in general)
 		self.imageLabel.setMinimumSize(450, 450)
 		self.imageLabel.setAlignment(Qt.AlignCenter)
 		self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
@@ -58,8 +65,10 @@ class MyWindow(QMainWindow):
 		button = QPushButton("Hello")
 		vbox.addWidget( button )
 
-		self.points = DrawingPointsWidget()
-		self.points.resize(600,600)
+		#self.points = DrawingPointsWidget()
+		#??
+		self.points = DrawingPointsWidget(self.image)
+		self.points.resize(400,400)
 		
 		vbox.addWidget(self.points)
 		vbox.addWidget(self.imageLabel)
@@ -147,7 +156,7 @@ class MyWindow(QMainWindow):
 		#self.setWindowTitle("QMainWindow WheelEvent")
 		editToolbar.addWidget(self.label)
 
-		#self.showImage()
+		self.showImage()
 		
 	def createAction(self, text, slot=None, shortcut=None, icon=None,
 					 tip=None, checkable=False, signal="triggered()"):
@@ -174,7 +183,9 @@ class MyWindow(QMainWindow):
 				target.addAction(action)
 
 	def showImage(self, percent=None):
+		print 'showImage()'
 		if self.image.isNull():
+			print '   image is null'
 			return
 		if percent is None:
 			percent = 100 #self.zoomSpinBox.value()
@@ -183,7 +194,8 @@ class MyWindow(QMainWindow):
 		height = self.image.height() * factor
 		image = self.image.scaled(width, height, Qt.KeepAspectRatio)
 		
-		image.setOffset(QPoint(100,100))
+		#image.setOffset(QPoint(100,100))
+		print '   setting image with: self.imageLabel.setPixmap(QPixmap.fromImage(image))'
 		self.imageLabel.setPixmap(QPixmap.fromImage(image))
 		#??
 		#self.imageLabel.setGeometry(self.imageX,self.imageY,self.imageWidth,self.imageHeight)
@@ -278,7 +290,8 @@ class MyWindow(QMainWindow):
 		self.x =self.x + event.delta()/120
 		#print self.x
 		self.label.setText("Total Steps: "+QString.number(self.x))
-
+		#self.points.draw()
+		
 	def mouseMoveEvent(self, event):
 		#event: QMouseMoveEvent
 		#see: http://pyqt.sourceforge.net/Docs/PyQt4/qwidget.html#mouseMoveEvent
@@ -332,10 +345,21 @@ class MyWindow(QMainWindow):
 		#self.myPainter.end(self)
 
 class DrawingPointsWidget(QWidget):
-	def __init__(self):
+	def __init__(self, image):
 		super(QWidget, self).__init__()
-		self.__setUI()
 
+		#???
+		''' this does not crash but image does not show up'
+		self.image = image
+		self.imageLabel = QLabel() #for some reason, QLabel is used to diaply images (in general)
+		self.imageLabel.setMinimumSize(450, 450)
+		self.imageLabel.setAlignment(Qt.AlignCenter)
+		self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
+		'''
+
+		self.__setUI()
+		
+		
 	def __setUI(self):
 
 		self.setGeometry(300, 300, 280, 170)
@@ -352,14 +376,38 @@ class DrawingPointsWidget(QWidget):
 	def drawPoints(self, qp):
 		#print 'DrawingPointsWidget::drawPoints()'
 		
-		qp.setPen(Qt.red)
+		#self.showImage()
 
+		qp.setPen(Qt.blue)
+		
 		size = self.size()
 		
+		rectWidth = 5
+		rectHeight = 5
 		for i in range(1000):
 			x = random.randint(1, size.width()-1 )
 			y = random.randint(1, size.height()-1 )
-			qp.drawPoint(x, y)
+			#rect = rectangle(x, y, rectWidth, rectHeight)
+			qp.drawEllipse(x, y, rectWidth, rectHeight)
+			#qp.drawPoint(x, y)
+
+	def showImage(self, percent=None):
+		print 'showImage()'
+		if self.image.isNull():
+			print '   image is null'
+			return
+		if percent is None:
+			percent = 100 #self.zoomSpinBox.value()
+		factor = percent / 100.0
+		width = self.image.width() * factor
+		height = self.image.height() * factor
+		image = self.image.scaled(width, height, Qt.KeepAspectRatio)
+		
+		#image.setOffset(QPoint(100,100))
+		print '   setting image with: self.imageLabel.setPixmap(QPixmap.fromImage(image))'
+		self.imageLabel.setPixmap(QPixmap.fromImage(image))
+		#??
+		#self.imageLabel.setGeometry(self.imageX,self.imageY,self.imageWidth,self.imageHeight)
 		
 def main():
 	print '=== starting pyqt_stackbrowser'
