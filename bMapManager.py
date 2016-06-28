@@ -165,7 +165,7 @@ class bStack():
 		zTop = z - 1
 		zBottom = z + 1
 		spines = self.getSpines(parentID=parentID)
-		ret = spines[spines.z > zTop][['x','y','z']].values
+		ret = spines[(spines.z >= zTop) & (spines.z <= zTop)][['x','y','z']].values
 		return ret
 		
 class bStackPlot():

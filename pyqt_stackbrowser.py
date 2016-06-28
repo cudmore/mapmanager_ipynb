@@ -14,6 +14,7 @@ http://stackoverflow.com/questions/28050397/eventfilter-on-a-qwidget-with-pyqt4
 '''
 
 import os, sys, math, random
+import numpy as np
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -49,6 +50,9 @@ class MyWindow(QMainWindow):
 		self.imageWidth = 200
 		self.imageHeight = 200
 		
+		self.currentImageWidth = 512
+		self.currentImageHeight = 512
+		
 		#this is required here AND in self.centralWidget()
 		self.setMouseTracking(True)
 
@@ -82,13 +86,13 @@ class MyWindow(QMainWindow):
 		mainWidget = QWidget()
 		vbox = QVBoxLayout()
 
-		button = QPushButton("Hello")
-		vbox.addWidget( button )
+		#button = QPushButton("Hello")
+		#vbox.addWidget( button )
 
 		#self.points = DrawingPointsWidget()
 		#??
 		self.points = DrawingPointsWidget(self.image, self.map)
-		self.points.resize(400,400)
+		#self.points.resize(400,400)
 		
 		vbox.addWidget(self.points)
 		vbox.addWidget(self.imageLabel)
@@ -208,17 +212,19 @@ class MyWindow(QMainWindow):
 			print '   image is null'
 			return
 		if percent is None:
-			percent = 100 #self.zoomSpinBox.value()
+			percent = self.zoomSpinBox.value()
 		factor = percent / 100.0
-		width = self.image.width() * factor
-		height = self.image.height() * factor
-		image = self.image.scaled(width, height, Qt.KeepAspectRatio)
+		self.currentImageWidth = self.image.width() * factor
+		self.currentmageHeight = self.image.height() * factor
+		image = self.image.scaled(self.currentImageWidth, self.currentmageHeight, Qt.KeepAspectRatio)
 		
 		#image.setOffset(QPoint(100,100))
 		#print '   setting image with: self.imageLabel.setPixmap(QPixmap.fromImage(image))'
 		self.imageLabel.setPixmap(QPixmap.fromImage(image))
 		#??
 		#self.imageLabel.setGeometry(self.imageX,self.imageY,self.imageWidth,self.imageHeight)
+		
+		self.points.update()
 		
 	def editInvert(self, on):
 		if self.image.isNull():
@@ -307,7 +313,9 @@ class MyWindow(QMainWindow):
 		self.updateStatus("Key '" + event.text() + "' pressed")
 		
 	def wheelEvent(self,event):
-		self.x = self.x + math.floor(event.delta() / 2)
+		#self.x = self.x + math.floor(event.delta() / 2)
+		#print event.delta()
+		self.x = self.x + np.sign(event.delta())
 		if self.x < 0:
 			self.x = 0
 		#print 'event.delta():', event.delta()
@@ -323,8 +331,10 @@ class MyWindow(QMainWindow):
 				self.image.setColorTable(self.COLORTABLE)
 				self.showImage()
 			self.points.z = self.x
-			#self.points.drawPoints()
-				
+			
+			#tell points to update, update() will trigger draw !!!
+			#self.points.update()
+			
 	def mouseMoveEvent(self, event):
 		#event: QMouseMoveEvent
 		#see: http://pyqt.sourceforge.net/Docs/PyQt4/qwidget.html#mouseMoveEvent
@@ -381,24 +391,34 @@ class DrawingPointsWidget(QWidget):
 	def __init__(self, image, map):
 		super(QWidget, self).__init__()
 
-		#???
-		''' this does not crash but image does not show up'
-		self.image = image
-		self.imageLabel = QLabel() #for some reason, QLabel is used to diaply images (in general)
-		self.imageLabel.setMinimumSize(450, 450)
-		self.imageLabel.setAlignment(Qt.AlignCenter)
-		self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
-		'''
+		#self.image = image
+
+		localImagePath = os.getcwd() + '/images/pigeon.png'
+		if not os.path.isfile(localImagePath):
+			print '*** ERROR: did not find file:', localImagePath
+		self.image = QImage(localImagePath)
+		if self.image.isNull():
+			print '*** ERROR: loading image'
+
+		self.imageLabel = QLabel() #for some reason, QLabel is used to display images (in general)
+		#self.imageLabel.setMinimumSize(450, 450)
+		self.imageLabel.setGeometry(10, 10, 200, 200)
+		#self.imageLabel.setAlignment(Qt.AlignCenter)
+		#self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
+		#self.setCentralWidget(self.imageLabel)
+		self.imageLabel.setPixmap(QPixmap.fromImage(self.image))
 
 		self.map = map
 		self.z = 0
-		
+
+		self.showImage()
+
 		self.__setUI()
 		
 		
 	def __setUI(self):
 
-		self.setGeometry(300, 300, 280, 170)
+		self.setGeometry(200, 200, 400, 400)
 		self.setWindowTitle('Points')
 		self.show()
 
@@ -411,8 +431,6 @@ class DrawingPointsWidget(QWidget):
 
 	def drawPoints(self, qp):
 		#print 'DrawingPointsWidget::drawPoints()'
-		
-		#self.showImage()
 
 		qp.setPen(Qt.blue)
 		
@@ -420,25 +438,17 @@ class DrawingPointsWidget(QWidget):
 		
 		rectWidth = 5
 		rectHeight = 5
-		'''
-		for i in range(1000):
-			x = random.randint(1, size.width()-1 )
-			y = random.randint(1, size.height()-1 )
-			#rect = rectangle(x, y, rectWidth, rectHeight)
-			qp.drawEllipse(x, y, rectWidth, rectHeight)
-			#qp.drawPoint(x, y)
-		'''
-		
+
 		xyz = self.map.stackList[1].getMask(self.z)
 		num = len(xyz)
-		print 'drawing', str(num), 'pnts'
 		for i in range(num):
 			x = xyz[i][0]
 			y = xyz[i][1]
 			qp.drawEllipse(x, y, rectWidth, rectHeight)
-			
+
+		self.showImage()
+
 	def showImage(self, percent=None):
-		#print 'showImage()'
 		if self.image.isNull():
 			print '   image is null'
 			return
@@ -448,13 +458,10 @@ class DrawingPointsWidget(QWidget):
 		width = self.image.width() * factor
 		height = self.image.height() * factor
 		image = self.image.scaled(width, height, Qt.KeepAspectRatio)
-		
-		#image.setOffset(QPoint(100,100))
-		#print '   setting image with: self.imageLabel.setPixmap(QPixmap.fromImage(image))'
+
+		#print 'DrawingPointsWidget.showImage()', width, height
 		self.imageLabel.setPixmap(QPixmap.fromImage(image))
-		#??
-		#self.imageLabel.setGeometry(self.imageX,self.imageY,self.imageWidth,self.imageHeight)
-		
+
 def main():
 	print '=== starting pyqt_stackbrowser'
 	app = QApplication(sys.argv)
