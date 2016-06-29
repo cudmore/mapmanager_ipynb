@@ -29,21 +29,16 @@ class MyWindow(QMainWindow):
 		self.map = bMap('a5n')
 		self.map.stackList[1].loadtiff()
 		a = self.map.stackList[1].getSlice(0)
-		print a.shape
-		#image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_Indexed8)
-		image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
+
+		#Format_RGB666
+		#image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
+		image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_RGB666)
 
 		
 		self.COLORTABLE=[]
 		#for i in range(256): self.COLORTABLE.append(QtGui.qRgb(i/4,i,i/2))
 		for i in range(256): self.COLORTABLE.append(qRgb(i/4,i,i/2))
 
-		'''
-		self.label = QLabel("No data")
-		self.label.setGeometry(100, 200, 100, 100)
-		self.setCentralWidget(self.label)
-		self.setWindowTitle("QMainWindow WheelEvent")
-		'''
 		self.x = 0
 		self.imageX = 0
 		self.imageY = 0
@@ -81,16 +76,12 @@ class MyWindow(QMainWindow):
 		self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
 		#self.setCentralWidget(self.imageLabel)
 
-		'''
-		'''
 		mainWidget = QWidget()
 		vbox = QVBoxLayout()
 
 		#button = QPushButton("Hello")
 		#vbox.addWidget( button )
 
-		#self.points = DrawingPointsWidget()
-		#??
 		self.points = DrawingPointsWidget(self.image, self.map)
 		#self.points.resize(400,400)
 		
@@ -99,16 +90,12 @@ class MyWindow(QMainWindow):
 
 		mainWidget.setLayout(vbox)
 		self.setCentralWidget(mainWidget)
-		'''
-		'''
 				
 		#set background color of window
 		palette = QPalette()
 		palette.setColor(QPalette.Background,Qt.gray)
 		self.setPalette(palette)
 
-
-		#???
 		self.centralWidget().setMouseTracking(True)
 		
 		#i want to turn on mouse tracking
@@ -180,7 +167,7 @@ class MyWindow(QMainWindow):
 		#self.setWindowTitle("QMainWindow WheelEvent")
 		editToolbar.addWidget(self.label)
 
-		self.showImage()
+		#self.showImage()
 		
 	def createAction(self, text, slot=None, shortcut=None, icon=None,
 					 tip=None, checkable=False, signal="triggered()"):
@@ -206,26 +193,6 @@ class MyWindow(QMainWindow):
 			else:
 				target.addAction(action)
 
-	def showImage(self, percent=None):
-		#print 'showImage()'
-		if self.image.isNull():
-			print '   image is null'
-			return
-		if percent is None:
-			percent = self.zoomSpinBox.value()
-		factor = percent / 100.0
-		self.currentImageWidth = self.image.width() * factor
-		self.currentmageHeight = self.image.height() * factor
-		image = self.image.scaled(self.currentImageWidth, self.currentmageHeight, Qt.KeepAspectRatio)
-		
-		#image.setOffset(QPoint(100,100))
-		#print '   setting image with: self.imageLabel.setPixmap(QPixmap.fromImage(image))'
-		self.imageLabel.setPixmap(QPixmap.fromImage(image))
-		#??
-		#self.imageLabel.setGeometry(self.imageX,self.imageY,self.imageWidth,self.imageHeight)
-		
-		self.points.update()
-		
 	def editInvert(self, on):
 		if self.image.isNull():
 			return
@@ -309,7 +276,7 @@ class MyWindow(QMainWindow):
 			self.imageY += panValue
 			
 		#self.imageLabel.setGeometry(100,100,200,200)
-		self.showImage()
+		#self.showImage()
 		self.updateStatus("Key '" + event.text() + "' pressed")
 		
 	def wheelEvent(self,event):
@@ -327,9 +294,12 @@ class MyWindow(QMainWindow):
 			if a is not None:
 				#print 'wheelEvent()', a.shape, a.dtype
 				#self.image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_Indexed8)
-				self.image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
+				#Format_RGB666
+				#self.image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
+				self.image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_RGB666)
 				self.image.setColorTable(self.COLORTABLE)
-				self.showImage()
+				#self.showImage()
+				self.update()
 			self.points.z = self.x
 			
 			#tell points to update, update() will trigger draw !!!
@@ -349,43 +319,53 @@ class MyWindow(QMainWindow):
 		cursor = QCursor()
 		print 'mouseReleaseEvent:', cursor.pos()		
 
+	def showImage(self, percent=None):
+		#print 'showImage()'
+		if self.image.isNull():
+			print '   image is null'
+			return
+		if percent is None:
+			percent = self.zoomSpinBox.value()
+		factor = percent / 100.0
+		self.currentImageWidth = self.image.width() * factor
+		self.currentmageHeight = self.image.height() * factor
+		image = self.image.scaled(self.currentImageWidth, self.currentmageHeight, Qt.KeepAspectRatio)
+		
+		self.imageLabel.setPixmap(QPixmap.fromImage(image))
+		
+		#this is critical otherwise points do not update
+		self.points.update()
+		
 	#try and draw an image overlay
 	def paintEvent(self, e):
-		#print 'paintEvent():', e
+		self.showImage()
 
-		#painter = QPainter(self)
-
-		#self.imageLabel.setPixmap(QPixmap.fromImage(image))
+		#works
+		#qp = QPainter(self)
 		
-		#self.showImage()
+		#QPainter::begin: Cannot paint on an image with the QImage::Format_Indexed8 format
 		
-		#painter.drawImage(0,0, QPixmap.fromImage(self.image))
+		#???
+		#see: http://stackoverflow.com/questions/17248269/drawing-a-point-over-an-image-on-qlabel
+		qp = QPainter(self.image)
 		
-		'''
-		qp = QPainter(self)
-		qp.begin(self)
-		qp.drawImage(0,0,self.image)
-		#self.drawPoints(qp)
-		qp.end()
-		'''
+		#qp.begin(self.image)
 		
-		#this was working
-		#self.drawPoints(painter)
+		#works
+		self.drawPoints(qp)
+		
+		#qp.end()
 		
 	def drawPoints(self, painter):
 	  
-		#self.myPainter.begin(self)
-
-		#qp.setPen(QPen(QBrush(Qt.red), 1, Qt.DashLine))
 		painter.setPen(QPen(Qt.red,5))
 		size = self.size()
 		
 		for i in range(1000):
 			x = random.randint(1, size.width()-1)
 			y = random.randint(1, size.height()-1)
-			painter.drawPoint(x, y)	 
-
-		#self.myPainter.end(self)
+			painter.drawEllipse(x, y, 5, 5)
+			#painter.drawPoint(x, y)	 
 
 class DrawingPointsWidget(QWidget):
 	def __init__(self, image, map):
@@ -402,10 +382,9 @@ class DrawingPointsWidget(QWidget):
 
 		self.imageLabel = QLabel() #for some reason, QLabel is used to display images (in general)
 		#self.imageLabel.setMinimumSize(450, 450)
-		self.imageLabel.setGeometry(10, 10, 200, 200)
+		#self.imageLabel.setGeometry(10, 10, 200, 200)
 		#self.imageLabel.setAlignment(Qt.AlignCenter)
 		#self.imageLabel.setContextMenuPolicy(Qt.ActionsContextMenu)
-		#self.setCentralWidget(self.imageLabel)
 		self.imageLabel.setPixmap(QPixmap.fromImage(self.image))
 
 		self.map = map
@@ -434,8 +413,6 @@ class DrawingPointsWidget(QWidget):
 
 		qp.setPen(Qt.blue)
 		
-		size = self.size()
-		
 		rectWidth = 5
 		rectHeight = 5
 
@@ -459,7 +436,7 @@ class DrawingPointsWidget(QWidget):
 		height = self.image.height() * factor
 		image = self.image.scaled(width, height, Qt.KeepAspectRatio)
 
-		#print 'DrawingPointsWidget.showImage()', width, height
+		print 'DrawingPointsWidget.showImage()', width, height
 		self.imageLabel.setPixmap(QPixmap.fromImage(image))
 
 def main():
