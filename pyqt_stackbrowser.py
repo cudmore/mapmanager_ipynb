@@ -4,6 +4,9 @@
 #
 
 '''
+use QGraphicsScene QGraphicsView
+http://stackoverflow.com/questions/8766584/displayin-an-image-in-a-qgraphicsscene
+
 to draw points, derive a class from QWidget::DrawingPointsWidget and it will have its own paintEvent()
 #
 points = DrawingPointsWidget
@@ -31,8 +34,9 @@ class MyWindow(QMainWindow):
 		a = self.map.stackList[1].getSlice(0)
 
 		#Format_RGB666
-		#image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
-		image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_RGB666)
+		image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
+		image = image.convertToFormat(QImage.Format_RGB16)
+		#image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_RGB666)
 
 		
 		self.COLORTABLE=[]
@@ -295,10 +299,9 @@ class MyWindow(QMainWindow):
 				#print 'wheelEvent()', a.shape, a.dtype
 				#self.image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_Indexed8)
 				#Format_RGB666
-				#self.image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
-				self.image = QImage(a.tostring(), a.shape[0], a.shape[1], a.shape[0], QImage.Format_RGB666)
+				self.image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
 				self.image.setColorTable(self.COLORTABLE)
-				#self.showImage()
+				self.image = self.image.convertToFormat(QImage.Format_RGB16)
 				self.update()
 			self.points.z = self.x
 			
@@ -347,7 +350,8 @@ class MyWindow(QMainWindow):
 		
 		#???
 		#see: http://stackoverflow.com/questions/17248269/drawing-a-point-over-an-image-on-qlabel
-		qp = QPainter(self.image)
+		image = self.image
+		qp = QPainter(image)
 		
 		#qp.begin(self.image)
 		
@@ -361,7 +365,7 @@ class MyWindow(QMainWindow):
 		painter.setPen(QPen(Qt.red,5))
 		size = self.size()
 		
-		for i in range(1000):
+		for i in range(100):
 			x = random.randint(1, size.width()-1)
 			y = random.randint(1, size.height()-1)
 			painter.drawEllipse(x, y, 5, 5)
