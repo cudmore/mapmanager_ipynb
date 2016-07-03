@@ -25,7 +25,7 @@ class MyWindow(QMainWindow):
 		self.z = 0
 		
 		#
-		self.setGeometry(100,100,400,400) #set the main window size
+		self.setGeometry(100,100,600,600) #set the main window size
 		
 		self.scene = QGraphicsScene()
 		#self.view = QGraphicsView(self.scene)
@@ -33,12 +33,14 @@ class MyWindow(QMainWindow):
 		
 		self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
 
-		
 		self.imageLabel = QLabel()
-		self.imageLabel.setGeometry(10, 10, 400, 400) #position and size of image
+		self.imageLabel.setGeometry(0, 0, 1024, 1024) #position and size of image
 		#self.imageLabel.setPixmap(QPixmap(os.getcwd() + "/images/pigeon.png"))
 		self.imageLabel.setPixmap(QPixmap.fromImage(self.image))
 
+		#this will translate QWidget with image
+		#self.imageLabel.move(200,200)
+		
 		self.scene.addWidget(self.imageLabel)
 		
 		#bug in qt, does not work
@@ -52,8 +54,7 @@ class MyWindow(QMainWindow):
 
 		self.setCentralWidget(mainWidget)
 
-		map = ''
-		self.points = DrawingPointsWidget(map)
+		self.points = DrawingPointsWidget(self.map)
 		self.scene.addWidget(self.points)
 		
 		self.view.scale(0.5,0.5)
@@ -63,27 +64,119 @@ class MyWindow(QMainWindow):
 		#self.view.show();
 		#self.view.resize(512,512);
 
-	#see:
-	#http://stackoverflow.com/questions/16105349/remove-scroll-functionality-on-mouse-wheel-qgraphics-view
-	def wheelEvent(self,event):
-		print event.delta()
-		self.z = self.z + np.sign(event.delta())
-		if self.z < 0:
-			self.z = 0
-		print 'MyWindow.wheelEvent()', self.z
-		#self.label.setText("Total Steps: "+QString.number(self.x))
+		#set background color of window
+		palette = QPalette()
+		palette.setColor(QPalette.Background,Qt.gray)
+		self.setPalette(palette)
 
+		self.sizeLabel = QLabel()
+		self.sizeLabel.setFrameStyle(QFrame.StyledPanel|QFrame.Sunken)
+		status = self.statusBar()
+		status.setSizeGripEnabled(False)
+		status.addPermanentWidget(self.sizeLabel)
+		status.showMessage("Ready", 5000)
+
+		editToolbar = self.addToolBar("Edit")
+		editToolbar.setObjectName("EditToolBar")
+		'''
+		self.addActions(editToolbar, (editInvertAction,
+				editSwapRedAndBlueAction, editUnMirrorAction,
+				editMirrorVerticalAction, editMirrorHorizontalAction))
+		'''
+
+		self.zoomSpinBox = QSpinBox()
+		self.zoomSpinBox.setRange(1, 400)
+		self.zoomSpinBox.setSuffix(" %")
+		self.zoomSpinBox.setValue(100)
+		self.zoomSpinBox.setToolTip("Zoom the image")
+		self.zoomSpinBox.setStatusTip(self.zoomSpinBox.toolTip())
+		self.zoomSpinBox.setFocusPolicy(Qt.NoFocus)
+		self.connect(self.zoomSpinBox,
+					 SIGNAL("valueChanged(int)"), self.showImage) #not sure if self.update() is good idea here?
+		editToolbar.addWidget(self.zoomSpinBox)
+		
+	#this is my function
+	def editZoom(self):
+		if self.image.isNull():
+			return
+		percent, ok = QInputDialog.getInteger(self,
+				"Image Changer - Zoom", "Percent:",
+				self.zoomSpinBox.value(), 1, 400)
+		if ok:
+			self.zoomSpinBox.setValue(percent)
+
+	#this is my function
+	def showImage(self, percent=None):
 		if self.z >= 0:
 			a = self.map.stackList[1].getSlice(self.z)
 			if a is not None:
-				#print 'wheelEvent()', a.shape, a.dtype
 				self.image = QImage(a.tostring(), a.shape[0], a.shape[1], QImage.Format_Indexed8)
 				self.image.setColorTable(self.COLORTABLE)
+
+				if percent is None:
+					percent = self.zoomSpinBox.value()
+				#print 'percent=', percent
+				factor = percent / 100.0
+				currentImageWidth = self.image.width() * factor
+				currentmageHeight = self.image.height() * factor
+				self.image = self.image.scaled(currentImageWidth, currentmageHeight, Qt.KeepAspectRatio)
+
+				self.imageLabel.setPixmap(QPixmap.fromImage(self.image))
+				
+				self.points.scaleFactor = factor
+				
 				self.update()
-			self.points.z = self.z
+
+	#this is my function
+	def updateStatus(self, message):
+		self.statusBar().showMessage(message, 5000)
+		#put this back in, this should be history of events
+		#self.listWidget.addItem(message)
+		'''
+		if self.filename is not None:
+			self.setWindowTitle("Image Changer - {0}[*]".format(
+								os.path.basename(self.filename)))
+		'''
+		if not self.image.isNull():
+			self.setWindowTitle("Image Changer - Unnamed[*]")
+		else:
+			self.setWindowTitle("Image Changer[*]")
+		#self.setWindowModified(self.dirty)
+		
+	#see:
+	#http://stackoverflow.com/questions/16105349/remove-scroll-functionality-on-mouse-wheel-qgraphics-view
+	def wheelEvent(self,event):
+		self.z = self.z + np.sign(event.delta())
+		if self.z < 0:
+			self.z = 0
+		print 'MyWindow.wheelEvent()', event.delta(), self.z
+		#self.label.setText("Total Steps: "+QString.number(self.x))
+
+		self.showImage()
+		
+		self.points.z = self.z
 			
-			#tell points to update, update() will trigger draw !!!
-			self.points.update()
+		#tell points to update, update() will trigger draw !!!
+		self.points.update()
+
+	def keyPressEvent(self, event):
+		print 'window.keyPressEvent:', event.text()
+		#use QLabel.setGeometry(h,v,w,h) to pan the image
+		#print 'keyPressEvent()'
+		panValue = 20
+		k = event.text()
+		if k == 'l':
+			self.imageX -= panValue
+			self.imageLabel.move(self.imageLabel.x()-20)
+		if k == 'r':
+			self.imageX += panValue
+			self.imageLabel.move(self.imageLabel.x()+20)
+		if k == 'u':
+			self.imageY -= panValue
+		if k == 'd':
+			self.imageY += panValue
+			
+		self.updateStatus("Key '" + event.text() + "' pressed")
 
 class MyGraphicsView(QGraphicsView):
 	#def __init__(self, map):
@@ -93,6 +186,10 @@ class MyGraphicsView(QGraphicsView):
 		#print 'MyGraphicsView.wheelEvent'
 		super(MyGraphicsView, self).wheelEvent(event)
 		#event.accept()
+
+	def keyPressEvent(self, event):
+		#print 'MyGraphicsView.keyPressEvent:', event.text()
+		super(MyGraphicsView, self).keyPressEvent(event)
 		
 class DrawingPointsWidget(QWidget):
 	def __init__(self, map):
@@ -100,7 +197,9 @@ class DrawingPointsWidget(QWidget):
 
 		self.map = map
 		self.z = 0
-
+		self.image = None
+		self.scaleFactor = 1 #fraction of total
+		
 		self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
 
 		#self.setAttribute(Qt.WA_NoSystemBackground)
@@ -124,13 +223,16 @@ class DrawingPointsWidget(QWidget):
 	def drawPoints(self, qp):
 		#print 'DrawingPointsWidget::drawPoints()'
 
-		qp.setPen(Qt.blue)
+		qp.setPen(QPen(Qt.red, 12, Qt.DashDotLine, Qt.RoundCap));
+		#qp.setPen(Qt.red)
 		
-		rectWidth = 5
-		rectHeight = 5
+		rectWidth = 7
+		rectHeight = 7
 
-		#xyz = self.map.stackList[1].getMask(self.z)
-		xyz = abs(np.random.random((20,20)) * 100)
+		xyz = self.map.stackList[1].getMask(self.z)
+		xyz /= float(self.map.stackList[1].header['voxelx'])
+		xyz *= self.scaleFactor
+		#xyz = abs(np.random.random((20,20)) * 100)
 		num = len(xyz)
 		for i in range(num):
 			x = xyz[i][0]
