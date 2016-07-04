@@ -43,7 +43,9 @@ Run the browser with
 
 The QT .jpg reader is not installed by default. Just use .png until this is figured out.
 
-# [Bokeh][bokeh] linked ploting. This is amazing, generates an html table from a pandas dataframe and quickly make some x/y plots (also from a pandas dataframe). Then on selecting points in one plot, these points are propogated to all other plots.
+# [Bokeh][bokeh] linked plotting.
+
+This is amazing, generates an html table from a pandas dataframe and quickly make some x/y plots (also in html from a pandas dataframe). Then on selecting points in one plot, these points are propagated to all other plots.
 
 	python bokeh1.py
 	
