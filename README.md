@@ -1,4 +1,8 @@
-Repository providing python code to load, analyze, and plot [Map Manager][mapmanager] files
+Repository providing python code to load, visualize, analyze, and plot [Map Manager][mapmanager] files. This can be done in three ways
+
+ - Pure Python code using the bMapManager.py class library
+ - Using the GUI of stackbrowser.py
+ - Creating web based plots and analysis using bokeh.py
 
 
 # Map Manager class library
