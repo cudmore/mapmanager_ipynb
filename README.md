@@ -1,6 +1,7 @@
-# mapmanager_ipynb
 Repository providing python code to load, analyze, and plot [Map Manager][mapmanager] files
 
+<IMG SRC="images/stackbrowser2.png" WIDTH=700>
+<IMG SRC="images/bokeh1.png" WIDTH=700>
 
 # Map Manager class library
 

@@ -143,6 +143,7 @@ class MyWindow(QMainWindow):
 		self.list = QTableView(self) #uses model/view
 		spinesModel = PandasModel(self.map.stackList[1].getSpines())
 		self.list.setModel(spinesModel)
+		self.list.setFont(QFont("Arial", 10))
 		self.leftToolbar.addWidget(self.list)
 		#self.leftToolbar.setVisible(True)
 		
