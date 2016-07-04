@@ -4,7 +4,7 @@ Repository providing python code to load, analyze, and plot MapManager files
 
 # Map Manager class library
 
-Include the following
+See [bMapManager][bMapManager]. Include the following in a Python script...
 
 	from bMapManager import bMap
 	from bMapManager import bStack
@@ -16,11 +16,13 @@ To run inside an ipython/jupiter notebook, also include
 	from plotly.offline import init_notebook_mode
 	init_notebook_mode() # run at the start of every ipython notebook to use plotly.offline
 
-See map.ipynb for sample code
+Requires numpy, pandas, tifffile
 
-# pyQT stack browser
+See map.ipynb for more sample code.
 
-Run the browser with
+# [pyQT][pyqt] stack browser
+
+A full GUI stack browser using pyqt. Run the browser with...
 
     python stackbrowser2.py
     
@@ -52,3 +54,5 @@ This is amazing, generates an html table from a pandas dataframe and quickly mak
 
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/cudmore/mapmanager_ipynb)
 [bokeh]: http://bokeh.pydata.org/en/latest/
+[bMapManager]: https://github.com/cudmore/mapmanager_ipynb/blob/master/bMapManager.py
+[pyqt]: https://riverbankcomputing.com/software/pyqt/intro
