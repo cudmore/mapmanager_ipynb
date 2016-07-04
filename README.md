@@ -1,7 +1,5 @@
 Repository providing python code to load, analyze, and plot [Map Manager][mapmanager] files
 
-<IMG SRC="images/stackbrowser2.png" WIDTH=700>
-<IMG SRC="images/bokeh1.png" WIDTH=700>
 
 # Map Manager class library
 
@@ -26,6 +24,8 @@ See [map.ipynb][1] for more sample code.
 A full GUI stack browser using pyqt. Run the browser with...
 
     python stackbrowser2.py
+
+<IMG SRC="images/stackbrowser2.png" WIDTH=600>
     
 ## Required libraries
 
@@ -51,6 +51,8 @@ The QT .jpg reader is not installed by default. Just use .png until this is figu
 This is amazing, generates an html table from a pandas dataframe and quickly make some x/y plots (also in html from a pandas dataframe). Then on selecting points in one plot, these points are propagated to all other plots.
 
 	python bokeh1.py
+
+<IMG SRC="images/bokeh1.png" WIDTH=700>
 	
 
 [mapmanager]: http://cudmore.github.io/mapmanager
