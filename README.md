@@ -1,5 +1,5 @@
 # mapmanager_ipynb
-Repository providing python code to load, analyze, and plot MapManager files
+Repository providing python code to load, analyze, and plot [Map Manager][mapmanager] files
 
 
 # Map Manager class library
@@ -52,6 +52,7 @@ This is amazing, generates an html table from a pandas dataframe and quickly mak
 	python bokeh1.py
 	
 
+[mapmanager]: http://cudmore.github.io/mapmanager
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/cudmore/mapmanager_ipynb)
 [bokeh]: http://bokeh.pydata.org/en/latest/
 [bMapManager]: https://github.com/cudmore/mapmanager_ipynb/blob/master/bMapManager.py
