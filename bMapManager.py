@@ -27,6 +27,56 @@ from plotly.graph_objs import Scatter, Layout
 
 import tifffile #requires pip install tifffile
 
+###############
+class bStackPool():
+	'''
+	Load 'Export (all stack'
+	ToDo: make this load a directory of .tif and /stackdb/ pairs
+	'''
+	def __init__(self, filePath=''):
+		self.filePath = filePath
+		self.stackdb = None
+		
+		self.header = {}
+		
+		if self.filePath:
+			self.load(self.filePath)
+	
+	def load(self, filePath):
+
+		#check if path exists
+		
+		headerLines = 0
+		#header = self.loadHeader(filepath)
+
+		self.stackdb = pd.read_csv(
+			filePath,
+			header=headerLines)
+
+	'''
+	def loadHeader(self, filePath):
+		#read header as dict
+		with open(filePath, 'U') as f:
+			header = f.readline()
+		header = header.rstrip()
+		if header.endswith(','):
+			header = header[:-1] #remove last char ','
+		if header.endswith(';'):
+			header = header[:-1] #remove last char ';'
+		d = dict(s.split('=') for s in header.split(';'))
+		return d
+	'''
+
+	def getSpines(self, parentID=None):
+		return self.getObj(roiType='spineROI', parentID=parentID)
+
+	def getObj(self, roiType='spineROI', parentID=None):
+		obj = self.stackdb[self.stackdb['roiType']==roiType]
+		if parentID>=0:
+			obj = obj[obj['parentID']==parentID]
+		return obj
+	
+###############
 class bStack():
 	def __init__(self, path='', filePrefix=''):
 		self.path = ''
