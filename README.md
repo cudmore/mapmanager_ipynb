@@ -18,7 +18,7 @@ To run inside an ipython/jupiter notebook, also include
 
 Requires numpy, pandas, tifffile
 
-See map.ipynb for more sample code.
+See [map.ipynb][1] for more sample code.
 
 # [pyQT][pyqt] stack browser
 
@@ -56,3 +56,4 @@ This is amazing, generates an html table from a pandas dataframe and quickly mak
 [bokeh]: http://bokeh.pydata.org/en/latest/
 [bMapManager]: https://github.com/cudmore/mapmanager_ipynb/blob/master/bMapManager.py
 [pyqt]: https://riverbankcomputing.com/software/pyqt/intro
+[1]: https://github.com/cudmore/mapmanager_ipynb/blob/master/map.ipynb
