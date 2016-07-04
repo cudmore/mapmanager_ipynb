@@ -34,7 +34,9 @@ Eventual features are:
  - Image contrast can be adjusted
  - Display stack db points overload on image and as a table
  - Clicking a point in the image will select it in the table and visa-versa
-
+ - Provide x/y plots. Clicking on a point in the plot will propogate to other views
+ - Provide statistics (mean, standard error, and n) for any plot.
+ 
 <IMG SRC="images/stackbrowser2.png" WIDTH=600>
     
 ## Required libraries
