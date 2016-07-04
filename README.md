@@ -19,13 +19,13 @@ Requires numpy, pandas, tifffile
 
 See [map.ipynb][1] for more sample code.
 
-# [pyQT][pyqt] stack browser
+# Python based stack browser
 
-A full GUI stack browser using pyqt. Run the browser with...
+A full GUI stack browser implemented in Python using [pyqt][pyqt]. Run the browser with...
 
     python stackbrowser2.py
 
-The next image shows the pyqt stack browser interface. A single image plane of a 3D stack is displayed with an overlay of stack db points (red spines). The bottom table shows the stack db.
+The next image shows the stack browser interface. A single image plane of a 3D stack is displayed with an overlay of stack db points (red spines). The bottom table shows the stack db.
 
 Eventual features are:
 
@@ -56,9 +56,9 @@ Eventual features are:
 
 The QT .jpg reader is not installed by default. Just use .png until this is figured out.
 
-# [Bokeh][bokeh] linked plotting.
+# Web browser plotting of Map Manager files using bokeh
 
-This is amazing, generates an html table from a pandas dataframe and quickly make some x/y plots (also in html from a pandas dataframe). Then on selecting points in one plot, these points are propagated to all other plots.
+Use the [bokeh][bokeh] python library to generates html pages with a table and x/y plots from a Map Manager file. Selecting points in one plot/table will propagate the selected points to other plots/tables.
 
 	python bokeh1.py
 
@@ -66,7 +66,7 @@ This is amazing, generates an html table from a pandas dataframe and quickly mak
 
 Eventual features are:
 
- - Make a Flask app where a Map MAnager map or single timepoint can be loaded.
+ - Make a Flask app where a Map Manager map or single timepoint file can be loaded.
  - Interface to select x/y data from table and then make a new plot.
  - On selection, report mean/sd/se/n for selection in each plot
  - Provide more advanced plotting and statistics using pandas pivot tables. For example, plot all sLen2d and then create a visual mask and output statistics for each segment.
