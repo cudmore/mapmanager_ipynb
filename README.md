@@ -25,6 +25,16 @@ A full GUI stack browser using pyqt. Run the browser with...
 
     python stackbrowser2.py
 
+The next image shows the pyqt stack browser interface. A single image plane of a 3D stack is displayed with an overlay of stack db points (red spines). The bottom table shows the stack db.
+
+Eventual features are:
+
+ - Load a single timepoint from Map Manager
+ - 3D stack can be scrolled (image slices), panned, and zoomed
+ - Image contrast can be adjusted
+ - Display stack db points overload on image and as a table
+ - Clicking a point in the image will select it in the table and visa-versa
+
 <IMG SRC="images/stackbrowser2.png" WIDTH=600>
     
 ## Required libraries
@@ -53,7 +63,13 @@ This is amazing, generates an html table from a pandas dataframe and quickly mak
 	python bokeh1.py
 
 <IMG SRC="images/bokeh1.png" WIDTH=700>
-	
+
+Eventual features are:
+
+ - Make a Flask app where a Map MAnager map or single timepoint can be loaded.
+ - Interface to select x/y data from table and then make a new plot.
+ - On selection, report mean/sd/se/n for selection in each plot
+ - Provide more advanced plotting and statistics using pandas pivot tables. For example, plot all sLen2d and then create a visual mask and output statistics for each segment.
 
 [mapmanager]: http://cudmore.github.io/mapmanager
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/cudmore/mapmanager_ipynb)
