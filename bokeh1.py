@@ -7,34 +7,38 @@ from bMapManager import bMap
 from bMapManager import bStack
 from bMapManager import bStackPlot
 
-myMap = bMap('a5n')
+#use MapManager class library to open one timepoint in a map
+mapName = 'a5n'
+myMap = bMap(mapName)
 spines = myMap.stackList[1].getSpines()
 spinesInt = myMap.stackList[1].getSpinesInt() # !!!!! REMEMBER TO MERGE STACK DB AND INT1/INT2
 
+#append spine intensity to spine stack db (tood: put this into main mapmanager class library)
 for col in spinesInt.columns:
 	spines[col] = spinesInt[col]
 	
-output_file("brushing.html")
-
-'''
-x = list(range(-20, 21))
-y0 = [abs(xx) for xx in x]
-y1 = [xx**2 for xx in x]
-'''
+output_file(mapName + '_bokeh.html')
 
 # create a column data source for the plots to share
-#source = ColumnDataSource(data=dict(x=x, y0=y0, y1=y1))
 source = ColumnDataSource(data=spines)
 
-TOOLS = "box_select,lasso_select,help"
+TOOLS = "box_select,lasso_select,box_zoom,pan,reset,resize,wheel_zoom,help"
 
 # create a new plot and add a renderer
-left = figure(tools=TOOLS, width=300, height=300, title=None)
+left = figure(tools=TOOLS, width=300, height=300, title=None, x_axis_label='x (um)', y_axis_label='y (um)')
 left.circle('x', 'y', source=source)
 
 # create another new plot and add a renderer
-right = figure(tools=TOOLS, width=300, height=300, title=None)
+right = figure(tools=TOOLS, width=300, height=300, title=None, x_axis_label='sSum', y_axis_label='sLen2d (um)')
 right.circle('sSum', 'sLen2d', source=source)
+
+# create another new plot and add a renderer
+right2 = figure(tools=TOOLS, width=300, height=300, title=None, x_axis_label='dSum', y_axis_label='sSum')
+right2.circle('dSum', 'sSum', source=source)
+
+# create another new plot and add a renderer
+segments = figure(tools=TOOLS, width=300, height=300, title=None, x_axis_label='parentID', y_axis_label='pDist')
+segments.circle('parentID', 'pDist', source=source)
 
 
 '''
@@ -55,8 +59,9 @@ columns = [
 
 data_table = DataTable(source=source, columns=columns, width=400, height=280)
 
-p = gridplot([[left, right]])
+p = gridplot([[left, right, right2], [segments]])
 
 layout = vform(data_table, p)
 
+show(layout)
 show(layout)

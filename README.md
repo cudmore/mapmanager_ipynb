@@ -22,7 +22,7 @@ See map.ipynb for sample code
 
 Run the browser with
 
-    python pyqt_stackbrowser.py
+    python stackbrowser2.py
     
 ## Required libraries
 
@@ -39,10 +39,14 @@ Run the browser with
 
     brew install pyqt
     
-#### Installing additional image readers
+### Installing additional image readers
 
 The QT .jpg reader is not installed by default. Just use .png until this is figured out.
 
+# [Bokeh][bokeh] linked ploting. This is amazing, generates an html table from a pandas dataframe and quickly make some x/y plots (also from a pandas dataframe). Then on selecting points in one plot, these points are propogated to all other plots.
+
+	python bokeh1.py
+	
 
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/cudmore/mapmanager_ipynb)
-
+[bokeh]: http://bokeh.pydata.org/en/latest/
