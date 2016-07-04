@@ -3,14 +3,25 @@ import numpy as np
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import pyqtgraph as pg
+
 from bMapManager import bMap
 from bMapManager import bStack
 from bMapManager import bStackPlot
 
+class MyWindow2(QWidget):
+	def __init__(self, mainWindow):
+		QWidget.__init__(self)
+
 class MyWindow(QMainWindow):
 	def __init__(self):
 		QMainWindow.__init__(self)
+		self.setWindowTitle('Stack Browser 2')
 
+		#a second window (works)
+		#self.secondWindow = MyWindow2(self)
+		#self.secondWindow.show()
+		
 		self.COLORTABLE=[]
 		#for i in range(256): self.COLORTABLE.append(QtGui.qRgb(i/4,i,i/2))
 		for i in range(256): self.COLORTABLE.append(qRgb(i/4,i,i/2))
@@ -33,6 +44,20 @@ class MyWindow(QMainWindow):
 		
 		self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
 
+		'''
+		self.setMouseTracking(True)
+		self.installEventFilter(self)
+		'''
+		
+		self.view.setMouseTracking(True)
+		self.view.viewport().installEventFilter(self)
+		#this is required otherwise QGraphicsView eats arrow keys (does not eat other keys)
+		self.view.installEventFilter(self)
+		
+		#turn of scrollbar
+		self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		
 		self.imageLabel = QLabel()
 		self.imageLabel.setGeometry(0, 0, 1024, 1024) #position and size of image
 		#self.imageLabel.setPixmap(QPixmap(os.getcwd() + "/images/pigeon.png"))
@@ -95,6 +120,49 @@ class MyWindow(QMainWindow):
 					 SIGNAL("valueChanged(int)"), self.showImage) #not sure if self.update() is good idea here?
 		editToolbar.addWidget(self.zoomSpinBox)
 		
+		#button to show/hide left toolbar
+		self.myButtonID1 = QPushButton('Left Toolbar')
+		self.myButtonID1.clicked.connect(lambda:self.myButtonPress(self.myButtonID1))
+		editToolbar.addWidget(self.myButtonID1)
+
+		#button to plot
+		self.myButtonID2 = QPushButton('Plot 1')
+		self.myButtonID2.clicked.connect(lambda:self.myButtonPress(self.myButtonID2))
+		editToolbar.addWidget(self.myButtonID2)
+
+		#checkbox to show/hide tracong
+		self.checkbox1 = QCheckBox('Show Tracing')
+		self.checkbox1.stateChanged.connect(lambda:self.myButtonPress(self.checkbox1))
+		editToolbar.addWidget(self.checkbox1)
+
+		#todo: put this into Qt.LeftToolBarArea
+		self.leftToolbar = QToolBar('left_tb')
+		self.addToolBar(Qt.LeftToolBarArea, self.leftToolbar)
+
+		#list for stack db
+		self.list = QTableView(self) #uses model/view
+		spinesModel = PandasModel(self.map.stackList[1].getSpines())
+		self.list.setModel(spinesModel)
+		self.leftToolbar.addWidget(self.list)
+		#self.leftToolbar.setVisible(True)
+		
+	def myButtonPress(self,b):
+		#print "clicked button is "+b.text()
+		button = b.text()
+		if button == 'Left Toolbar':
+			self.leftToolbar.setVisible(not self.leftToolbar.isVisible())
+		elif button == 'Show Tracing':
+			self.points.isVisible = b.isChecked()
+			self.update()
+		elif button=='Plot 1':
+			self.myPlot()
+					
+	def myPlot(self):
+		spines = self.map.stackList[1].getSpines()
+		x = spines.x.values
+		y = spines.y.values
+		pg.plot(x, y, pen=None, symbol='o')
+	
 	#this is my function
 	def editZoom(self):
 		if self.image.isNull():
@@ -143,13 +211,32 @@ class MyWindow(QMainWindow):
 			self.setWindowTitle("Image Changer[*]")
 		#self.setWindowModified(self.dirty)
 		
+	def eventFilter(self, source, event):
+		if (event.type() == QEvent.Wheel or event.type()==QEvent.GraphicsSceneWheel):
+			self.wheelEvent(event)
+			return 1
+			
+		if (event.type() == QEvent.MouseMove and
+			source is self.view.viewport()):
+			pos = event.pos()
+			#print('mouse move: (%d, %d)' % (pos.x(), pos.y()))
+			self.updateStatus('mouse ' + str(pos.x()) + ' ' + str(pos.y()))
+			return 1
+			
+		if (event.type() == QEvent.KeyPress):
+			#self.updateStatus('mouse ' + str(pos.x()) + ' ' + str(pos.y()))
+			self.keyPressEvent(event)
+			return 1
+			
+		return QMainWindow.eventFilter(self, source, event)
+
 	#see:
 	#http://stackoverflow.com/questions/16105349/remove-scroll-functionality-on-mouse-wheel-qgraphics-view
 	def wheelEvent(self,event):
 		self.z = self.z + np.sign(event.delta())
 		if self.z < 0:
 			self.z = 0
-		print 'MyWindow.wheelEvent()', event.delta(), self.z
+		#print 'MyWindow.wheelEvent()', event.delta(), self.z
 		#self.label.setText("Total Steps: "+QString.number(self.x))
 
 		self.showImage()
@@ -160,27 +247,65 @@ class MyWindow(QMainWindow):
 		self.points.update()
 
 	def keyPressEvent(self, event):
-		print 'window.keyPressEvent:', event.text()
+		#print 'window.keyPressEvent:', event.text()
 		#use QLabel.setGeometry(h,v,w,h) to pan the image
 		#print 'keyPressEvent()'
 		panValue = 20
-		k = event.text()
-		if k == 'l':
-			self.imageX -= panValue
-			self.imageLabel.move(self.imageLabel.x()-20)
-		if k == 'r':
-			self.imageX += panValue
-			self.imageLabel.move(self.imageLabel.x()+20)
-		if k == 'u':
-			self.imageY -= panValue
-		if k == 'd':
-			self.imageY += panValue
-			
-		self.updateStatus("Key '" + event.text() + "' pressed")
+		k = event.key()
+		self.updateStatus("Key '" + event.text() + "' " + str(event.key()) + " pressed")
+		if k == Qt.Key_Left:
+			#self.imageX -= panValue
+			self.imageLabel.move(self.imageLabel.x()-20,self.imageLabel.y())
+		if k == Qt.Key_Right:
+			#self.imageX += panValue
+			self.imageLabel.move(self.imageLabel.x()+20,self.imageLabel.y())
+		if k == Qt.Key_Up:
+			#self.imageY -= panValue
+			self.imageLabel.move(self.imageLabel.x(),self.imageLabel.y()-20)
+		if k == Qt.Key_Down:
+			#self.imageY += panValue
+			self.imageLabel.move(self.imageLabel.x(),self.imageLabel.y()+20)
+		if k==Qt.Key_Enter or k==Qt.Key_Return:
+			print 'rest image to full view and center'
+			self.imageLabel.move(0,0)
+		self.update()
 
+class PandasModel(QAbstractTableModel):
+	"""
+	Class to populate a table view with a pandas dataframe
+	"""
+	def __init__(self, data, parent=None):
+		QAbstractTableModel.__init__(self, parent)
+		self._data = data
+
+	def rowCount(self, parent=None):
+		return len(self._data.values)
+
+	def columnCount(self, parent=None):
+		return self._data.columns.size
+
+	def data(self, index, role=Qt.DisplayRole):
+		if index.isValid():
+			if role == Qt.DisplayRole:
+				return str(self._data.values[index.row()][index.column()])
+		return None
+
+	def headerData(self, col, orientation, role):
+		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+			return self._data.columns[col]
+		return None
+		
 class MyGraphicsView(QGraphicsView):
+	pass
 	#def __init__(self, map):
 	#	super(QGraphicsView, self).__init__()
+
+	'''
+	def eventFilter(self, source, event):
+		if (event.type() == QEvent.MouseMove):
+			pos = event.pos()
+			print('MyGraphicsView mouse move: (%d, %d)' % (pos.x(), pos.y()))
+		return QGraphicsView.eventFilter(self, source, event)
 
 	def wheelEvent(self,event):
 		#print 'MyGraphicsView.wheelEvent'
@@ -188,8 +313,9 @@ class MyGraphicsView(QGraphicsView):
 		#event.accept()
 
 	def keyPressEvent(self, event):
-		#print 'MyGraphicsView.keyPressEvent:', event.text()
+		print 'MyGraphicsView.keyPressEvent:', event.text(), event.key()
 		super(MyGraphicsView, self).keyPressEvent(event)
+	'''
 		
 class DrawingPointsWidget(QWidget):
 	def __init__(self, map):
@@ -199,6 +325,7 @@ class DrawingPointsWidget(QWidget):
 		self.z = 0
 		self.image = None
 		self.scaleFactor = 1 #fraction of total
+		self.isVisible = 1
 		
 		self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
 
@@ -223,8 +350,10 @@ class DrawingPointsWidget(QWidget):
 	def drawPoints(self, qp):
 		#print 'DrawingPointsWidget::drawPoints()'
 
+		if not self.isVisible:
+			return
+		
 		qp.setPen(QPen(Qt.red, 12, Qt.DashDotLine, Qt.RoundCap));
-		#qp.setPen(Qt.red)
 		
 		rectWidth = 7
 		rectHeight = 7
@@ -238,8 +367,6 @@ class DrawingPointsWidget(QWidget):
 			x = xyz[i][0]
 			y = xyz[i][1]
 			qp.drawEllipse(x, y, rectWidth, rectHeight)
-
-
 
 def main():
 	print '=== starting pyqt_stackbrowser'
