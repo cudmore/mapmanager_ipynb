@@ -125,6 +125,15 @@ class MyWindow(QMainWindow):
 		self.myButtonID1.clicked.connect(lambda:self.myButtonPress(self.myButtonID1))
 		editToolbar.addWidget(self.myButtonID1)
 
+		#ch1 button
+		self.myCh1ButtonID = QPushButton('Channel 1')
+		self.myCh1ButtonID.clicked.connect(lambda:self.myButtonPress(self.myCh1ButtonID))
+		editToolbar.addWidget(self.myCh1ButtonID)
+		#ch2 button
+		self.myCh2ButtonID = QPushButton('Channel 2')
+		self.myCh2ButtonID.clicked.connect(lambda:self.myButtonPress(self.myCh2ButtonID))
+		editToolbar.addWidget(self.myCh2ButtonID)
+
 		#button to plot
 		self.myButtonID2 = QPushButton('Plot 1')
 		self.myButtonID2.clicked.connect(lambda:self.myButtonPress(self.myButtonID2))
@@ -157,7 +166,11 @@ class MyWindow(QMainWindow):
 			self.update()
 		elif button=='Plot 1':
 			self.myPlot()
-					
+		elif button=='Channel 1':
+			self.map.stackList[1].currentChannel = 1
+		elif button=='Channel 2':
+			self.map.stackList[1].currentChannel = 2
+						
 	def myPlot(self):
 		spines = self.map.stackList[1].getSpines()
 		x = spines.x.values

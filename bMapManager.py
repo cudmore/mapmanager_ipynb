@@ -27,7 +27,7 @@ from plotly.graph_objs import Scatter, Layout
 
 import tifffile #requires pip install tifffile
 
-###############
+################################################
 class bStackPool():
 	'''
 	Load 'Export (all stack'
@@ -76,7 +76,7 @@ class bStackPool():
 			obj = obj[obj['parentID']==parentID]
 		return obj
 	
-###############
+################################################
 class bStack():
 	def __init__(self, path='', filePrefix=''):
 		self.path = ''
@@ -89,6 +89,7 @@ class bStack():
 		self.header = {}
 		
 		self.data = None
+		self.currentChannel = 1
 		
 		if path and filePrefix:
 			self.load(path, filePrefix)
@@ -161,7 +162,12 @@ class bStack():
 		if not os.path.isfile(ch1path):
 			print 'ERROR: bStack.loadtiff() did not find:', ch1path
 			return
-		self.data = tifffile.imread(ch1path)
+		ch2path = self.path + '/Raw/' + specialPrefix + self.prefix + '_ch2.tif'
+		if not os.path.isfile(ch2path):
+			print 'ERROR: bStack.loadtiff() did not find:', ch2path
+			#return
+
+		self.data = tifffile.imread(ch2path)
 		print 'bStack.loadtiff() loaded', ch1path, 'shape:', self.data.shape, 'dtype:', self.data.dtype
 		
 	def unloadtiff(self):
@@ -218,6 +224,7 @@ class bStack():
 		ret = spines[(spines.z >= zTop) & (spines.z <= zTop)][['x','y','z']].values
 		return ret
 		
+################################################
 class bStackPlot():
 	def __init__(self, stack):
 		self.stack = stack
@@ -272,6 +279,7 @@ class bStackPlot():
 		#print url
 
 
+################################################
 class bMap():
 	def __init__(self, path=''):
 		self.stackList = []
